@@ -1,0 +1,7 @@
+flask
+moviepy
+edge-tts
+requests
+waitress
+nest_asyncio
+gunicorn
