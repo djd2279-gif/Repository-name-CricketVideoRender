@@ -24,7 +24,10 @@ if not os.path.exists(VIDEO_FOLDER):
 # KEYS
 # =====================================================================
 PEXELS_API_KEY = "oiBu8RSuO10ymnkgC8WnScrv7uDiMvsu483FeN19maRKAaZ3FN8TfBM8"
-BASE_URL = os.getenv("BASE_URL", "http://localhost:5000")
+BASE_URL = os.getenv(
+    "BASE_URL",
+    "https://repository-name-cricketvideorender.onrender.com"
+)
 VIDEO_TTL_SECONDS = 3600
 
 # =====================================================================
