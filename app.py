@@ -149,11 +149,17 @@ async def _voiceover_async(text, language, output_path):
 
 def generate_voiceover(text, language, output_path):
     print(f"\n[2/4] Voiceover bana rahe hain ({language})...")
+
     try:
-        import concurrent.futures
-        with concurrent.futures.ThreadPoolExecutor() as pool:
-            future = pool.submit(asyncio.run, _voiceover_async(text, language, output_path))
-            future.result(timeout=60)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        loop.run_until_complete(
+            _voiceover_async(text, language, output_path)
+        )
+
+        loop.close()
+
     except Exception as e:
         print(f"Voiceover error: {e}")
         raise
