@@ -143,12 +143,24 @@ def download_automatic_clips(script_text, api_key, required_count=6):
 # =====================================================================
 async def _voiceover_async(text, language, output_path):
     import edge_tts
-    voice = "hi-IN-MadhurNeural" if language.lower() == "hindi" else "en-US-EricNeural"
-    communicate = edge_tts.Communicate(text, voice)
+
+    voice = (
+        "hi-IN-MadhurNeural"
+        if language.lower() == "hindi"
+        else "en-US-EricNeural"
+    )
+
+    communicate = edge_tts.Communicate(
+        text=text,
+        voice=voice
+    )
+
     await communicate.save(output_path)
 
 def generate_voiceover(text, language, output_path):
     print(f"\n[2/4] Voiceover bana rahe hain ({language})...")
+
+    import asyncio
 
     try:
         loop = asyncio.new_event_loop()
@@ -158,6 +170,7 @@ def generate_voiceover(text, language, output_path):
             _voiceover_async(text, language, output_path)
         )
 
+    finally:
         loop.close()
 
     except Exception as e:
