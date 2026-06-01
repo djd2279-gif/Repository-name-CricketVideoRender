@@ -156,11 +156,12 @@ async def _voiceover_async(text, language, output_path):
     )
 
     await communicate.save(output_path)
-
 def generate_voiceover(text, language, output_path):
     print(f"\n[2/4] Voiceover bana rahe hain ({language})...")
 
     import asyncio
+
+    loop = None
 
     try:
         loop = asyncio.new_event_loop()
@@ -170,12 +171,13 @@ def generate_voiceover(text, language, output_path):
             _voiceover_async(text, language, output_path)
         )
 
-    finally:
-        loop.close()
-
     except Exception as e:
         print(f"Voiceover error: {e}")
         raise
+
+    finally:
+        if loop:
+            loop.close()
 
 # =====================================================================
 # FUNCTION 3: FINAL VIDEO
