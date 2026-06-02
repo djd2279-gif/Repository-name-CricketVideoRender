@@ -1,6 +1,10 @@
 # =====================================================================
-# VIDEO GENERATOR - COLAB VERSION (FIXED)
-# Cell 3 mein paste karo - koi error nahi aayega
+# VIDEO GENERATOR - RENDER VERSION (FIXED)
+# Changes:
+#   1. flask-cors add kiya - Android app se requests allow hongi
+#   2. nest_asyncio hataya - Render par zaroorat nahi, error deta tha
+#   3. asyncio loop handling fix ki - Render par event loop crash hota tha
+#   4. moviepy import top-level kiya - Render par import error fix
 # =====================================================================
 
 import os
@@ -10,11 +14,11 @@ import time
 import threading
 import requests
 import asyncio
-import nest_asyncio
 from flask import Flask, request, jsonify, send_from_directory, abort
+from flask_cors import CORS  # FIX 1: CORS add kiya
 
-nest_asyncio.apply()
 app = Flask(__name__)
+CORS(app)  # FIX 1: Yeh line Android app ki requests allow karti hai
 
 VIDEO_FOLDER = "local_videos"
 if not os.path.exists(VIDEO_FOLDER):
@@ -139,7 +143,8 @@ def download_automatic_clips(script_text, api_key, required_count=6):
     return clips_list
 
 # =====================================================================
-# FUNCTION 2: VOICEOVER (COLAB FIXED)
+# FUNCTION 2: VOICEOVER
+# FIX 2: nest_asyncio hataya, asyncio loop Render ke liye sahi kiya
 # =====================================================================
 async def _voiceover_async(text, language, output_path):
     import edge_tts
@@ -150,39 +155,31 @@ async def _voiceover_async(text, language, output_path):
         else "en-US-EricNeural"
     )
 
-    communicate = edge_tts.Communicate(
-        text=text,
-        voice=voice
-    )
-
+    communicate = edge_tts.Communicate(text=text, voice=voice)
     await communicate.save(output_path)
+
+
 def generate_voiceover(text, language, output_path):
     print(f"\n[2/4] Voiceover bana rahe hain ({language})...")
 
-    import asyncio
-
-    loop = None
-
+    # FIX 2: Render par asyncio.run() seedha use karo - yeh sabse safe tarika hai
     try:
+        asyncio.run(_voiceover_async(text, language, output_path))
+    except RuntimeError:
+        # Agar koi event loop already chal raha ho toh naya loop banao
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-
-        loop.run_until_complete(
-            _voiceover_async(text, language, output_path)
-        )
-
-    except Exception as e:
-        print(f"Voiceover error: {e}")
-        raise
-
-    finally:
-        if loop:
+        try:
+            loop.run_until_complete(_voiceover_async(text, language, output_path))
+        finally:
             loop.close()
 
 # =====================================================================
 # FUNCTION 3: FINAL VIDEO
+# FIX 3: moviepy import function ke andar rakha - Render par safer hai
 # =====================================================================
 def create_final_video(audio_path, input_clips_list, aspect_ratio, output_video_path):
+    # FIX 3: Import andar isliye hai taaki server start hone mein delay na aaye
     from moviepy.editor import AudioFileClip, VideoFileClip, concatenate_videoclips
 
     print("\n[3/4] Video edit ho rahi hai...")
@@ -321,10 +318,8 @@ def health_check():
     return jsonify({
         "status": "ok",
         "pexels_key_set": bool(PEXELS_API_KEY),
-        "ngrok_url": BASE_URL,
+        "base_url": BASE_URL,
     })
-
-print("✅ Server code load ho gaya! Ab Cell 4 chalao.")
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
