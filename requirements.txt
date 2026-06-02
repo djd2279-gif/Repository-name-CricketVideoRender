@@ -1,7 +1,7 @@
 flask
+flask-cors
 moviepy
 edge-tts==6.1.12
 requests
 waitress
-nest_asyncio
 gunicorn
