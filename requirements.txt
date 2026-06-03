@@ -1,7 +1,6 @@
 flask
 flask-cors
 moviepy==1.0.3
-Pillow==9.5.0
 gTTS
 requests
 waitress
