@@ -1,6 +1,6 @@
 flask
 flask-cors
-moviepy
+moviepy==1.0.3
 gTTS
 requests
 waitress
