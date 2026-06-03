@@ -97,7 +97,7 @@ def download_automatic_clips(script_text, api_key, required_count=6):
     if not keywords:
     keywords = ["nature", "city", "sports", "music", "sky", "cricket", "motivation"]
 
-keywords = keywords + ["cricket", "sports", "fitness", "stadium", "success", "nature"] # extra fallback
+    keywords = keywords + ["cricket", "sports", "fitness", "stadium", "success", "nature"]
 
     headers = {"Authorization": api_key}
 
