@@ -137,13 +137,13 @@ def generate_voiceover(text, language, output_path):
 
 
 def create_final_video(audio_path, input_clips_list, aspect_ratio, output_video_path):
+    from PIL import Image
+    if not hasattr(Image, 'ANTIALIAS'):
+        Image.ANTIALIAS = Image.LANCZOS
     from moviepy.editor import AudioFileClip, VideoFileClip, concatenate_videoclips
-
     print("\n[3/4] Video edit ho rahi hai...")
-
     if not input_clips_list:
         raise Exception("Koi clips download nahi hui!")
-
     ratio_map = {
         "9:16": (1080, 1920),
         "16:9": (1920, 1080),
