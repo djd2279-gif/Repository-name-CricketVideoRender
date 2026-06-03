@@ -95,7 +95,9 @@ def download_automatic_clips(script_text, api_key, required_count=6):
             break
 
     if not keywords:
-        keywords = ["nature", "technology", "city", "sports", "music"]
+    keywords = ["nature", "city", "sports", "music", "sky", "cricket", "motivation"]
+
+keywords = keywords + ["cricket", "sports", "fitness", "stadium", "success", "nature"] # extra fallback
 
     headers = {"Authorization": api_key}
 
@@ -104,7 +106,7 @@ def download_automatic_clips(script_text, api_key, required_count=6):
             break
         try:
             url = f"https://api.pexels.com/videos/search?query={word}&per_page=3&orientation=portrait"
-            response = requests.get(url, headers=headers, timeout=15)
+            response = requests.get(url, headers=headers, timeout=30)
             if response.status_code != 200:
                 continue
 
