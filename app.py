@@ -1,32 +1,19 @@
-# =====================================================================
-# VIDEO GENERATOR - RENDER VERSION (FIXED)
-# Changes:
-#   1. flask-cors add kiya - Android app se requests allow hongi
-#   2. nest_asyncio hataya - Render par zaroorat nahi, error deta tha
-#   3. asyncio loop handling fix ki - Render par event loop crash hota tha
-#   4. moviepy import top-level kiya - Render par import error fix
-# =====================================================================
-
 import os
 import re
 import uuid
 import time
 import threading
 import requests
-import asyncio
 from flask import Flask, request, jsonify, send_from_directory, abort
-from flask_cors import CORS  # FIX 1: CORS add kiya
+from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # FIX 1: Yeh line Android app ki requests allow karti hai
+CORS(app)
 
 VIDEO_FOLDER = "local_videos"
 if not os.path.exists(VIDEO_FOLDER):
     os.makedirs(VIDEO_FOLDER)
 
-# =====================================================================
-# KEYS
-# =====================================================================
 PEXELS_API_KEY = "oiBu8RSuO10ymnkgC8WnScrv7uDiMvsu483FeN19maRKAaZ3FN8TfBM8"
 BASE_URL = os.getenv(
     "BASE_URL",
@@ -34,9 +21,6 @@ BASE_URL = os.getenv(
 )
 VIDEO_TTL_SECONDS = 3600
 
-# =====================================================================
-# STOPWORDS
-# =====================================================================
 STOPWORDS = {
     "the", "and", "for", "are", "but", "not", "you", "all", "can",
     "her", "was", "one", "our", "out", "day", "get", "has", "him",
@@ -49,9 +33,7 @@ STOPWORDS = {
     "mein", "hai", "karo", "aur", "nahi", "yeh", "woh", "iske", "unke",
 }
 
-# =====================================================================
-# OLD VIDEOS CLEANUP
-# =====================================================================
+
 def cleanup_old_videos():
     while True:
         try:
@@ -66,17 +48,14 @@ def cleanup_old_videos():
             print(f"[CLEANUP ERROR] {e}")
         time.sleep(300)
 
+
 threading.Thread(target=cleanup_old_videos, daemon=True).start()
 
-# =====================================================================
-# SECURE FILENAME CHECK
-# =====================================================================
+
 def is_safe_filename(filename):
     return bool(re.match(r'^video_[a-f0-9]{8}\.mp4$', filename))
 
-# =====================================================================
-# FUNCTION 1: PEXELS SE CLIPS DOWNLOAD
-# =====================================================================
+
 def download_automatic_clips(script_text, api_key, required_count=6):
     print("\n[1/4] Videos dhoondh rahe hain...")
 
@@ -94,10 +73,11 @@ def download_automatic_clips(script_text, api_key, required_count=6):
         if len(keywords) >= 6:
             break
 
-   if not keywords:
-    keywords = ["nature", "city", "sports", "music", "sky", "cricket", "motivation"]
+    if not keywords:
+        keywords = ["cricket", "sports", "nature", "city", "motivation"]
 
-keywords = keywords + ["cricket", "sports", "fitness", "stadium", "success", "nature"]
+    keywords = keywords + ["cricket", "sports", "fitness", "stadium", "success", "nature"]
+
     headers = {"Authorization": api_key}
 
     for word in keywords:
@@ -143,17 +123,11 @@ keywords = keywords + ["cricket", "sports", "fitness", "stadium", "success", "na
 
     return clips_list
 
-# =====================================================================
-# FUNCTION 2: VOICEOVER
-# FIX 2: nest_asyncio hataya, asyncio loop Render ke liye sahi kiya
-# =====================================================================
+
 def generate_voiceover(text, language, output_path):
     print(f"\n[2/4] Voiceover bana rahe hain ({language})...")
-
     from gtts import gTTS
-
     lang_code = "hi" if language.lower() == "hindi" else "en"
-
     try:
         tts = gTTS(text=text, lang=lang_code, slow=False)
         tts.save(output_path)
@@ -161,12 +135,8 @@ def generate_voiceover(text, language, output_path):
     except Exception as e:
         raise Exception(f"Voiceover failed: {e}")
 
-# =====================================================================
-# FUNCTION 3: FINAL VIDEO
-# FIX 3: moviepy import function ke andar rakha - Render par safer hai
-# =====================================================================
+
 def create_final_video(audio_path, input_clips_list, aspect_ratio, output_video_path):
-    # FIX 3: Import andar isliye hai taaki server start hone mein delay na aaye
     from moviepy.editor import AudioFileClip, VideoFileClip, concatenate_videoclips
 
     print("\n[3/4] Video edit ho rahi hai...")
@@ -238,9 +208,7 @@ def create_final_video(audio_path, input_clips_list, aspect_ratio, output_video_
             except:
                 pass
 
-# =====================================================================
-# FLASK ROUTES
-# =====================================================================
+
 @app.route('/generate-video', methods=['POST'])
 def handle_mobile_request():
     data = request.get_json(silent=True)
@@ -291,6 +259,7 @@ def handle_mobile_request():
             except:
                 pass
 
+
 @app.route('/videos/<filename>')
 def serve_video(filename):
     if not is_safe_filename(filename):
@@ -300,6 +269,7 @@ def serve_video(filename):
         abort(404)
     return send_from_directory(VIDEO_FOLDER, filename)
 
+
 @app.route('/health')
 def health_check():
     return jsonify({
@@ -307,6 +277,7 @@ def health_check():
         "pexels_key_set": bool(PEXELS_API_KEY),
         "base_url": BASE_URL,
     })
+
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
