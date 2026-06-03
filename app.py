@@ -149,32 +149,16 @@ def download_automatic_clips(script_text, api_key, required_count=6):
 def generate_voiceover(text, language, output_path):
     print(f"\n[2/4] Voiceover bana rahe hain ({language})...")
 
-    import edge_tts
+    from gtts import gTTS
 
-    voices = (
-        ["hi-IN-MadhurNeural", "hi-IN-SwaraNeural"]
-        if language.lower() == "hindi"
-        else ["en-US-EricNeural", "en-US-JennyNeural"]
-    )
+    lang_code = "hi" if language.lower() == "hindi" else "en"
 
-    last_error = None
-    for voice in voices:
-        for attempt in range(3):
-            try:
-                async def _try():
-                    communicate = edge_tts.Communicate(text=text, voice=voice)
-                    await communicate.save(output_path)
-
-                asyncio.run(_try())
-                print(f"-> Voiceover ready ({voice})")
-                return
-
-            except Exception as e:
-                last_error = e
-                print(f"-> Attempt {attempt+1} failed ({voice}): {e}")
-                time.sleep(2)
-
-    raise Exception(f"Voiceover failed: {last_error}")
+    try:
+        tts = gTTS(text=text, lang=lang_code, slow=False)
+        tts.save(output_path)
+        print(f"-> Voiceover ready ({lang_code})")
+    except Exception as e:
+        raise Exception(f"Voiceover failed: {e}")
 
 # =====================================================================
 # FUNCTION 3: FINAL VIDEO
